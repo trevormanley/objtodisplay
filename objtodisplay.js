@@ -92,25 +92,37 @@ var objectToDisplay = objectToDisplay || {
         });
         return bestHandler;
     },
-    fillElement : function (element, object, ignoreMissing, objectMappingFunction) {
+    fillElement : function (element, object, extraOptions) {
         'use strict';
-        var cn = 0, children, potentialFillFrom, propertyValue;
-        if (objectMappingFunction === undefined) {
-            objectMappingFunction = function (baseObject, requestedProperty) {
-                return baseObject[requestedProperty];
+        var cn = 0, children, potentialFillFrom, propertyValue, defaultMappingFunction;
+        defaultMappingFunction = function (baseObject, requestedProperty) {
+            return baseObject[requestedProperty];
+        };
+        if (extraOptions === undefined) {
+            extraOptions = {
+                objectMappingFunction : defaultMappingFunction,
+                ignoreMissing : true,
+                handlers : undefined,
+                useDefaultHandlers : true
             };
         }
-        if (ignoreMissing === undefined) {
-            ignoreMissing = true;
+        if (extraOptions.objectMappingFunction === undefined) {
+            extraOptions.objectMappingFunction = defaultMappingFunction;
+        }
+        if (extraOptions.ignoreMissing === undefined) {
+            extraOptions.ignoreMissing = true;
+        }
+        if (extraOptions.useDefaultHandlers === undefined) {
+            extraOptions.useDefaultHandlers = true;
         }
         children = element.children;
         //children needs to be live updating, so isn't converted to an array
         for (cn = 0; cn < children.length; cn += 1) {
             potentialFillFrom = children[cn].dataset.display;
             if (potentialFillFrom !== undefined) {
-                propertyValue = objectMappingFunction(object, potentialFillFrom);
+                propertyValue = extraOptions.objectMappingFunction(object, potentialFillFrom);
                 if (propertyValue === undefined) {
-                    if (!ignoreMissing) {
+                    if (!extraOptions.ignoreMissing) {
                         throw new Error("Property \"" + potentialFillFrom + "\" was not found!");
                     }
                     //Otherwise do nothing.
@@ -118,7 +130,7 @@ var objectToDisplay = objectToDisplay || {
                     this.getBestHandler(children[cn]).handle(children[cn], propertyValue);
                 }
             }
-            this.fillElement(children[cn], object, ignoreMissing, objectMappingFunction);
+            this.fillElement(children[cn], object, extraOptions);
         }
     }
 };
