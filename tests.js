@@ -20,9 +20,9 @@ QUnit.test("CORE: Text", function (assert) {
     assert.equal(document.getElementById("textTest").textContent, "<a href='http://example.com'>This should just be text and not an element</a>");
 });
 QUnit.test("CORE: Text - Handlers Removed", function (assert) {
-    objectToDisplay.fillElement(document.getElementById("container"), core_test_object, {useDefaultHandlers: false});
-    assert.equal(document.getElementById("textTest").children.length, 0);
-    assert.equal(document.getElementById("textTest").textContent, "");
+    assert.throws(function () {
+        objectToDisplay.fillElement(document.getElementById("container"), core_test_object, {useDefaultHandlers: false});
+    }, new Error("No handlers are defined."), "With no handlers there should be an error");
 });
 QUnit.test("CORE: HTML", function (assert) {
     objectToDisplay.fillElement(document.getElementById("container"), core_test_object);

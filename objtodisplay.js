@@ -24,66 +24,12 @@ THE SOFTWARE.
 
 */
 var objectToDisplay = objectToDisplay || {
-    handlers : [
-        {
-            name : "DefaultTextHandler",
-            desirablenessOf : function (element) {
-                'use strict';
-                if (element.dataset.displayType === undefined) {
-                    return 1;
-                }
-                if (element.dataset.displayType.toLowerCase() === "text") {
-                    return 10;
-                }
-                return 1;
-            },
-            handle : function (element, data) {
-                'use strict';
-                element.textContent = data;
-            }
-        },
-        {
-            name : "DefaultHTMLHandler",
-            desirablenessOf : function (element) {
-                'use strict';
-                if (element.dataset.displayType === undefined) {
-                    return 0;
-                }
-                if (element.dataset.displayType.toLowerCase() === "html") {
-                    
-                    return 10;
-                }
-                return 0;
-            },
-            handle : function (element, data) {
-                'use strict';
-                element.innerHTML = data;
-            }
-        },
-        {
-            name : "DefaultNestingHandler",
-            desirablenessOf : function (element) {
-                'use strict';
-                if (element.dataset.displayType === undefined) {
-                    return 0;
-                }
-                if (element.dataset.displayType.toLowerCase() === "nested_object") {
-                    return 10;
-                }
-                return 0;
-            },
-            handle : function (element, data) {
-                'use strict';
-                objectToDisplay.fillElement(element, data);
-            }
-        }
-    ],
-    getBestHandler : function (element) {
+    getBestHandler : function (element, handlers) {
         'use strict';
         var bestHandler, mostSpecific = 0;
-        bestHandler = this.handlers[0];
+        bestHandler = handlers[0];
         mostSpecific = 0;
-        this.handlers.forEach(function (handler) {
+        handlers.forEach(function (handler) {
             var currentSpecificity = handler.desirablenessOf(element);
             if (currentSpecificity >= mostSpecific) {
                 bestHandler = handler;
@@ -94,15 +40,58 @@ var objectToDisplay = objectToDisplay || {
     },
     fillElement : function (element, object, extraOptions) {
         'use strict';
-        var cn = 0, children, potentialFillFrom, propertyValue, defaultMappingFunction;
+        var cn = 0, children, potentialFillFrom, propertyValue, defaultMappingFunction, defaultTextHandler, defaultHTMLHandler, defaultNestingHandler;
         defaultMappingFunction = function (baseObject, requestedProperty) {
             return baseObject[requestedProperty];
+        };
+        defaultTextHandler = {
+            desirablenessOf : function (element) {
+                if (element.dataset.displayType === undefined) {
+                    return 1;
+                }
+                if (element.dataset.displayType.toLowerCase() === "text") {
+                    return 10;
+                }
+                return 1;
+            },
+            handle : function (element, data) {
+                element.textContent = data;
+            }
+        };
+        defaultHTMLHandler = {
+            desirablenessOf : function (element) {
+                if (element.dataset.displayType === undefined) {
+                    return 0;
+                }
+                if (element.dataset.displayType.toLowerCase() === "html") {
+                    
+                    return 10;
+                }
+                return 0;
+            },
+            handle : function (element, data) {
+                element.innerHTML = data;
+            }
+        };
+        defaultNestingHandler = {
+            desirablenessOf : function (element) {
+                if (element.dataset.displayType === undefined) {
+                    return 0;
+                }
+                if (element.dataset.displayType.toLowerCase() === "nested_object") {
+                    return 10;
+                }
+                return 0;
+            },
+            handle : function (element, data) {
+                objectToDisplay.fillElement(element, data);
+            }
         };
         if (extraOptions === undefined) {
             extraOptions = {
                 objectMappingFunction : defaultMappingFunction,
                 ignoreMissing : true,
-                handlers : undefined,
+                handlers : [],
                 useDefaultHandlers : true
             };
         }
@@ -114,6 +103,17 @@ var objectToDisplay = objectToDisplay || {
         }
         if (extraOptions.useDefaultHandlers === undefined) {
             extraOptions.useDefaultHandlers = true;
+        }
+        if (extraOptions.handlers === undefined) {
+            extraOptions.handlers = [];
+        }
+        if (extraOptions.useDefaultHandlers === true) {
+            extraOptions.handlers.push(defaultTextHandler);
+            extraOptions.handlers.push(defaultHTMLHandler);
+            extraOptions.handlers.push(defaultNestingHandler);
+        }
+        if (extraOptions.handlers.length === 0) {
+            throw new Error("No handlers are defined.");
         }
         children = element.children;
         //children needs to be live updating, so isn't converted to an array
@@ -127,10 +127,16 @@ var objectToDisplay = objectToDisplay || {
                     }
                     //Otherwise do nothing.
                 } else {
-                    this.getBestHandler(children[cn]).handle(children[cn], propertyValue);
+                    this.getBestHandler(children[cn], extraOptions.handlers).handle(children[cn], propertyValue);
                 }
             }
-            this.fillElement(children[cn], object, extraOptions);
+            this.fillElement(children[cn], object, {
+                handlers : extraOptions.handlers,
+                objectMappingFunction : extraOptions.objectMappingFunction,
+                ignoreMissing : extraOptions.ignoreMissing,
+                //Done use defaults, if the caller wanted them they will have already been added
+                useDefaultHandlers : false
+            });
         }
     }
 };
