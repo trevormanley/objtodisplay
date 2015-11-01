@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="objtodisplay.js"></script>
+        <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.20.0.css"/>
+    </head>
+    <body>
+        <div id="qunit"></div>
+        <!-- Tested elements go inside Fixture -->
+        <div id="qunit-fixture">
+            <div id="container">
+                <div id="htmlTest" data-display-type="html" data-display="myHTML"></div>
+                <span id="textTest" data-display="text"></span>
+                <span id="textTestSpecified" data-display-type="text" data-display="text"></span>
+                <div id="nestingTest" data-display-type="nested_object" data-display="myOtherObj">
+                    <span class="nested" data-display="innerObject1" id="n_e_e1"></span>
+                    <span class="nested" data-display="innerObject2" id="n_e_e2"></span>
+                </div>
+                <input type="button" data-display="whatwasthatbuttonsupposedtosay"/>
+                <input type="checkbox" data-display="doiknow"/>
+                <select data-display="buttonnamingoptions"></select>
+                <span data-display-type="simpleCustom" data-display="somecustomdata"></span>
+                <span data-display="thisismissing"></span>
+                <span data-display="thisdoesntactualmapautomatically"></span>
+            </div>
+        </div>
+        
+        <script src="http://code.jquery.com/qunit/qunit-1.20.0.js"></script>
+        <!-- Tests go here -->
+        <script src="tests.js"></script>
+    </body>
+</html>
