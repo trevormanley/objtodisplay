@@ -43,7 +43,10 @@ Handlers are objects that contain the following methods:
 
 Cross Browser Concerns
 ----------------------
-Object to Display uses the dataset feature [caniuse](http://caniuse.com/#search=dataset)
+Object to Display uses the following newer features:
+* Dataset [caniuse](http://caniuse.com/#search=dataset)
+* forEach [caniuse](http://caniuse.com/#search=forEach)
+
 
 Known Issues
 ------------
